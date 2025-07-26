@@ -5,12 +5,18 @@ import pandas as pd
 import csv
 import re
 import time
+import os 
 
 # Task: Extract
 @task
-def extract_data():
-    column = ['target','id','date','flag','user','text']
-    df = pd.read_csv('dataset/tweets.csv', encoding='latin1', names=column)
+def extract_data() -> pd.DataFrame:
+    """Read CSV from local dataset directory."""
+    file_path = 'dataset/tweets.csv'
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+    
+    column_names = ['target', 'id', 'date', 'flag', 'user', 'text']
+    df = pd.read_csv(file_path, encoding='latin1', names=column_names)
     return df
 
 def remove_emojis(text):
@@ -42,8 +48,11 @@ def transform_data(df):
 
 # Task: Load
 @task
-def load_data(df):
-    df.to_csv('dataset/tweets_prefect.csv', index=False, encoding='utf-8')
+def load_data(df: pd.DataFrame, output_path: str = 'dataset/tweets_prefect.csv'):
+    """Save transformed DataFrame to CSV."""
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    df.to_csv(output_path, index=False, encoding='utf-8')
+    print(f"Saved cleaned data to {output_path}")
 
 # Main flow
 @flow(name="ETL")
